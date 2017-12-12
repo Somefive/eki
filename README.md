@@ -1,3 +1,7 @@
+# ReadMe not rewritted and project is not finished.
+
+Author: Somefive 
+
 # Play REST API
 
 This is the example project for [Making a REST API in Play](http://developer.lightbend.com/guides/play-rest-api/index.html).
