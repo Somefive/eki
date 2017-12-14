@@ -6,6 +6,7 @@ import utils.i18n.StringHelper._
 import play.api.libs.json._
 
 object Publication {
+  private lazy val SEPARATOR: String = "[,;，、]"
   def zip(zh: List[String], en: List[String]): List[I18nString] = zh.zipAll(en, "", "").map(I18nString(_))
   def apply(map: Map[String, String]): Publication = {
 
@@ -13,13 +14,13 @@ object Publication {
     def getInt(label: String): Int = map.getOrElse(label, "0").toInt
     def extract(zh: String, en: String): I18nString = get(zh) -> get(en)
 
-    val authors_zh = get("作者").splitAndNonEmpty(';')
+    val authors_zh = get("作者").splitAndNonEmpty(SEPARATOR)
     val raw_authors_en = get("英文作者").splitAndNonEmpty("[()]")
-    val authors_en = raw_authors_en.headOption.map(_.splitAndNonEmpty(',')).getOrElse(List())
+    val authors_en = raw_authors_en.headOption.map(_.splitAndNonEmpty(SEPARATOR)).getOrElse(List())
     val authors = zip(authors_zh, authors_en)
-    val raw_firstPerson = get("第一责任人").splitAndNonEmpty(';').headOption.getOrElse("")
+    val raw_firstPerson = get("第一责任人").splitAndNonEmpty(SEPARATOR).headOption.getOrElse("")
     val keywords_zh = get("关键词").splitAndNonEmpty(";;")
-    val keywords_en = get("英文关键词").splitAndNonEmpty(';')
+    val keywords_en = get("英文关键词").splitAndNonEmpty(SEPARATOR)
     Publication(
       filename = get("文件名"),
       title = extract("题名", "英文篇名"),
@@ -39,11 +40,11 @@ object Publication {
       categoryNumber = get("分类号"),
       category = get("分类名称"),
       lang = get("语种"),
-      refYears = get("被引年").splitAndNonEmpty(';').map(_.toInt),
-      refs = get("参考文献").splitAndNonEmpty(';'),
-      sourceRef = get("引证文献").splitAndNonEmpty(';'),
-      commonRef = get("共引文献").splitAndNonEmpty(';'),
-      subRef = get("二级引证文献").splitAndNonEmpty(';'),
+      refYears = get("被引年").splitAndNonEmpty(SEPARATOR).map(_.toInt),
+      refs = get("参考文献").splitAndNonEmpty(SEPARATOR),
+      sourceRef = get("引证文献").splitAndNonEmpty(SEPARATOR),
+      commonRef = get("共引文献").splitAndNonEmpty(SEPARATOR),
+      subRef = get("二级引证文献").splitAndNonEmpty(SEPARATOR),
       table = get("表名"),
       publishDate = get("出版日期"),
       refCount = getInt("引证文献数量"),
@@ -141,22 +142,22 @@ case class Publication(
   lazy val toDocument: Document = {
     val doc = new Document()
     addField(doc, "filename")
-    addField(doc, "title", index = true)
-    addField(doc, "authors", index = true)
-    addField(doc, "firstPerson", index = true)
-    addField(doc, "org", index = true)
-    addField(doc, "src", index = true)
-    addField(doc, "publisher", index = true)
-    addField(doc, "keywords", index = true)
-    addField(doc, "abstract", index = true)
+    addField(doc, "title")
+    addField(doc, "authors")
+    addField(doc, "firstPerson")
+    addField(doc, "org")
+    addField(doc, "src")
+    addField(doc, "publisher")
+    addField(doc, "keywords")
+    addField(doc, "abstract")
     addField(doc, "year")
     addField(doc, "volume")
     addField(doc, "issueCode")
     addField(doc, "topicCode")
     addField(doc, "subTopicCode")
-    addField(doc, "topics", index = true)
+    addField(doc, "topics")
     addField(doc, "categoryNumber")
-    addField(doc, "category", index = true)
+    addField(doc, "category")
     addField(doc, "lang")
     addField(doc, "refYears")
     addField(doc, "refs")
@@ -172,11 +173,11 @@ case class Publication(
     addField(doc, "commonSourceCount")
     addField(doc, "ISSN")
     addField(doc, "CN")
-    addField(doc, "fund", index = true)
+    addField(doc, "fund")
     doc
   }
 
-  private def addField(doc: Document, fieldName: String, index: Boolean = false): Unit = {
+  private def addField(doc: Document, fieldName: String, index: Boolean = true): Unit = {
     val field = this.getClass.getDeclaredField(fieldName)
     field.setAccessible(true)
     def add(value: Any): Unit = {
@@ -190,8 +191,8 @@ case class Publication(
             doc.add(new StringField(fieldName+"_en", value.en, Field.Store.YES))
           }
         case value: String =>
-          if (index)  doc.add(new StringField(fieldName, value, Field.Store.YES))
-          else        doc.add(new TextField(fieldName, value, Field.Store.YES))
+          if (index)  doc.add(new TextField(fieldName, value, Field.Store.YES))
+          else        doc.add(new StringField(fieldName, value, Field.Store.YES))
         case value: Integer =>
           doc.add(new IntPoint(fieldName, value))
           doc.add(new StoredField(fieldName, value))

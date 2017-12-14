@@ -30,15 +30,22 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     }
   }
 
-  case class GeneralQuery(qs: String, skip: Int, limit: Int)
+  case class GeneralQuery(qs: String, skip: Int, limit: Int, analyzer: String, strict: Boolean)
   implicit lazy val GeneralQueryReads: Reads[GeneralQuery] = (
     (JsPath \ "qs").read[String] and
     (JsPath \ "skip").read[Int] and
-    (JsPath \ "limit").read[Int]
+    (JsPath \ "limit").read[Int] and
+    (JsPath \ "analyzer").read[String] and
+    (JsPath \ "strict").read[Boolean]
   )(GeneralQuery)
   def generalSearch(): Action[JsValue] = Action(parse.json) { implicit request =>
     request.body.validate[GeneralQuery].asOpt match {
-      case Some(q) => Ok(JsArray(LuceneEngine.generalSearch(q.qs, q.skip, q.limit).map(_.toJson)))
+      case Some(q) =>
+        val result = LuceneEngine.generalSearch(q.qs, q.skip, q.limit, q.analyzer, q.strict)
+        Ok(JsObject(Seq(
+          "data" -> JsArray(result._2.map(_.toJson)),
+          "total" -> JsNumber(BigDecimal(result._1))
+        )))
       case None => BadRequest(JsObject(Seq("error" -> JsString("Invalid Format"))))
     }
   }

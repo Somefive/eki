@@ -6,7 +6,6 @@ target
 /.project
 /.settings
 /RUNNING_PID
-/index
+/index*
 /data
-
 /.vscode

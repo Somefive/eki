@@ -20,6 +20,7 @@ libraryDependencies += "org.apache.lucene" % "lucene-core" % "7.1.0"
 libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "7.1.0"
 libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "7.1.0"
 libraryDependencies += "org.apache.lucene" % "lucene-codecs" % "7.1.0"
+libraryDependencies += "org.apache.lucene" % "lucene-highlighter" % "7.1.0"
 
 // The Play project itself
 lazy val root = (project in file("."))
@@ -27,7 +28,7 @@ lazy val root = (project in file("."))
   .configs(GatlingTest)
   .settings(inConfig(GatlingTest)(Defaults.testSettings): _*)
   .settings(
-    name := """play-scala-rest-api-example""",
+    name := """eki""",
     scalaSource in GatlingTest := baseDirectory.value / "/gatling/simulation"
   )
 
