@@ -49,4 +49,23 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       case None => BadRequest(JsObject(Seq("error" -> JsString("Invalid Format"))))
     }
   }
+
+  case class NormalQuery(qs: String, skip: Int, limit: Int, analyzer: String)
+  implicit lazy val NormalQueryReads: Reads[NormalQuery] = (
+    (JsPath \ "qs").read[String] and
+    (JsPath \ "skip").read[Int] and
+    (JsPath \ "limit").read[Int] and
+    (JsPath \ "analyzer").read[String]
+  )(NormalQuery)
+  def search(): Action[JsValue] = Action(parse.json) { implicit request =>
+    request.body.validate[NormalQuery].asOpt match {
+      case Some(q) =>
+        val result = LuceneEngine.search(q.qs, q.skip, q.limit, q.analyzer)
+        Ok(JsObject(Seq(
+          "data" -> JsArray(result._2.map(_.toJson)),
+          "total" -> JsNumber(BigDecimal(result._1))
+        )))
+      case None => BadRequest(JsObject(Seq("error" -> JsString("Invalid Format"))))
+    }
+  }
 }

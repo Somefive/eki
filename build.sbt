@@ -16,11 +16,13 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2
 libraryDependencies += "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.2" % Test
 libraryDependencies += "io.gatling" % "gatling-test-framework" % "2.2.2" % Test
 
-libraryDependencies += "org.apache.lucene" % "lucene-core" % "7.1.0"
-libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "7.1.0"
-libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "7.1.0"
-libraryDependencies += "org.apache.lucene" % "lucene-codecs" % "7.1.0"
-libraryDependencies += "org.apache.lucene" % "lucene-highlighter" % "7.1.0"
+libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-codecs" % "6.3.0"
+
+libraryDependencies += "org.lionsoul" % "jcseg-core" % "2.2.0"
+libraryDependencies += "org.lionsoul" % "jcseg-analyzer" % "2.2.0"
 
 // The Play project itself
 lazy val root = (project in file("."))

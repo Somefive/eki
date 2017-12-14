@@ -5,12 +5,16 @@ import java.io.File
 import models.Publication
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.analysis.cjk.CJKAnalyzer
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
+import org.lionsoul.jcseg.analyzer.JcsegAnalyzer
+import org.lionsoul.jcseg.tokenizer.core.JcsegTaskConfig
 import org.wltea.analyzer.lucene.IKAnalyzer
+import utils.CustomQueryParser
 import utils.console.ColorForConsole._
 import utils.console.Loggable
 import utils.i18n.StringHelper._
@@ -19,7 +23,11 @@ import scala.language.implicitConversions
 
 object LuceneEngine extends Loggable {
   lazy val DEFAULT_NAME = "IKAnalyzer"
-  val analyzers: Map[String, Analyzer] = Map("IKAnalyzer" -> new IKAnalyzer(), "StandardAnalyzer" -> new StandardAnalyzer())
+  val analyzers: Map[String, Analyzer] = Map(
+    "IKAnalyzer" -> new IKAnalyzer(),
+    "StandardAnalyzer" -> new StandardAnalyzer(),
+    "JcsegAnalyzer" -> new JcsegAnalyzer(JcsegTaskConfig.COMPLEX_MODE),
+    "CJKAnalyzer" -> new CJKAnalyzer())
   def getAnalyzer(name: String = DEFAULT_NAME): Analyzer = if (analyzers.contains(name)) analyzers(name) else analyzers(DEFAULT_NAME)
 
   lazy val searchers: Map[String, IndexSearcher] = analyzers.map(p => p._1 -> new IndexSearcher(DirectoryReader.open(getDir(p._1))))
@@ -43,7 +51,7 @@ object LuceneEngine extends Loggable {
     logger.info("Indexed".withColor(LIGHT_GREEN))
   }
 
-  val BATCH_SIZE = 1000
+  val BATCH_SIZE = 10000
 
   def doc(docId: Int, searcherName: String): Option[Publication] = {
     val d = getSearcher(searcherName).doc(docId)
@@ -73,10 +81,10 @@ object LuceneEngine extends Loggable {
   }
 
   def search(qs: String, skip: Int = 0, limit: Int = 20, analyzer: String = DEFAULT_NAME): (Long, Array[Publication]) = {
-    val parser = new QueryParser("title_zh", analyzer)
+    val parser = new CustomQueryParser("title_zh", analyzer)
     val query = parser.parse(qs)
     val result = getSearcher(analyzer).search(query, BATCH_SIZE)
-    (result.totalHits, result.scoreDocs.slice(skip, skip + limit).flatMap(s => doc(s.doc, analyzer)))
+    (result.totalHits.toLong, result.scoreDocs.slice(skip, skip + limit).flatMap(s => doc(s.doc, analyzer)))
   }
 
   implicit def apply(analyzerName: String): Analyzer = getAnalyzer(analyzerName)

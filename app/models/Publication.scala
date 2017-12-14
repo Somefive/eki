@@ -194,6 +194,7 @@ case class Publication(
           if (index)  doc.add(new TextField(fieldName, value, Field.Store.YES))
           else        doc.add(new StringField(fieldName, value, Field.Store.YES))
         case value: Integer =>
+          doc.add(new SortedNumericDocValuesField(fieldName, value.longValue()))
           doc.add(new IntPoint(fieldName, value))
           doc.add(new StoredField(fieldName, value))
         case value: List[Any] =>
