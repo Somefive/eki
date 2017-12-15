@@ -74,9 +74,7 @@ object LuceneEngine extends Loggable {
     .mkString(if (strict) " AND " else " OR " )
 
   def generalSearch(qs: String, skip: Int = 0, limit: Int = 20, analyzer: String = DEFAULT_NAME, strict: Boolean = true): (Long, Array[Publication]) = {
-    val queryString =
-      if (strict) mkQs(qs)
-      else qs.splitAndNonEmpty("\\s").map(subQs => "(" + mkQs(subQs) + ")").mkString(" AND ")
+    val queryString = qs.splitAndNonEmpty("\\s").map(subQs => "(" + mkQs(subQs) + ")").mkString(if (strict) " AND " else  " OR ")
     search(queryString, skip, limit, analyzer)
   }
 
