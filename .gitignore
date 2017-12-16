@@ -7,5 +7,6 @@ target
 /.settings
 /RUNNING_PID
 /index*
-/data
+/data/*.txt
+/data/word2vec-model
 /.vscode
