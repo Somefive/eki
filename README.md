@@ -1,75 +1,61 @@
-# ReadMe not rewritted and project is not finished.
+# CNKI Knowledge Search System
 
-Author: Somefive 
+Author: Somefive
 
-# Play REST API
+### Introduction
 
-This is the example project for [Making a REST API in Play](http://developer.lightbend.com/guides/play-rest-api/index.html).
+CNKI Knowledge Search System is a search engine based on **CNKI_journal Corpus**. It has basic search ability and some experimental functions. 
 
-## Appendix
+##### General Search
 
-### Running
+By default, you can type terms like `计算机` or `computer` to search relative publications. This search will automatically search in several fields such as title, abstract, organizations.
 
-You need to download and install sbt for this application to run.
+##### Analyzers
 
-Once you have sbt installed, the following at the command prompt will start up Play in development mode:
+This system is indexing based on several different analyzer including `StandardAnalyzer`, `IKAnalyzer`, `JcsegAnalyzer`, `CJKAnalyzer`. You can try different analyzers to see their performance.
 
-```
-sbt run
-```
+##### Advanced Search Options
 
-Play will start up on the HTTP port at http://localhost:9000/.   You don't need to deploy or reload anything -- changing any source code while the server is running will automatically recompile and hot-reload the application on the next HTTP request. 
+There are generally two different modes: strict mode and loose mode. They will construct queries with `AND` and `OR`  boolean operators separately. You can also configure many detailed fields in **Advance Search**.
 
-### Usage
+##### Related Words Suggestion
 
-If you call the same URL from the command line, you’ll see JSON. Using httpie, we can execute the command:
+When you type terms in general search box, related words will be suggested below which are constructed by **word2vec**. This suggestion service is separated from query service.
 
-```
-http --verbose http://localhost:9000/v1/posts
-```
+### Project Structure
 
-and get back:
+There are two separate projects: [EKi - backend](https://github.com/Somefive/eki), [AMe - frontend](https://github.com/Somefive/ame). 
 
-```
-GET /v1/posts HTTP/1.1
-```
+**EKi** is mainly a restful backend based on [Play 2 framework](https://playframework.com/) in scala. IKAnalyzer depends on Lucene 4 while JcsegAnalyzer depends on Lucene 6 so some original IKAnalyzer Java codes are imported directly with some small modifications to be compatible with latter Lucene function interfaces. The suggestion service is built by python3. It is a lite Flask service with gensim(for word2vec) and THULAC(for word splitting).
 
-Likewise, you can also send a POST directly as JSON:
+**AMe** is a single page app built on [Quasar framework](http://quasar-framework.org), a [vue](https://vuejs.org) framework. [Lodash](https://lodash.com/) and [axios](https://github.com/axios/axios) library are used to help development.
 
-```
-http --verbose POST http://localhost:9000/v1/posts title="hello" body="world"
-```
+The names of **EKi** and **AMe** are taken from a book *通り雨中の駅* written by *Kawabata Yasunari*. **EKi** corresponds to *駅* while **AMe** matches *雨*.
 
-and get:
+I intended to deploy this project on my server however my server is cheap and cannot allow backend run effectively. In a word, **Poverty limits my innovation.**. Just kidding. I am just lazy.
 
-```
-POST /v1/posts HTTP/1.1
-```
+### Deploy
 
-### Load Testing
+Required Environment: `java-1.8`, `sbt-0.13`, `python3`, `node v8`, `npm 5.6.0`.
+This system is originally developed on `Ubuntu 16.10`.
 
-The best way to see what Play can do is to run a load test.  We've included Gatling in this test project for integrated load testing.
+#### EKi
 
-Start Play in production mode, by [staging the application](https://www.playframework.com/documentation/2.5.x/Deploying) and running the play script:s
+Before everything starts, you should have one copy of original [corpus.txt](https://pan.baidu.com/s/1bDbQB8) in data folder.
+Run `chmod +x -R ./scripts` which allow you to execute bash scripts inside it.
 
-```
-sbt stage
-cd target/universal/stage
-bin/play-rest-api-example -Dplay.crypto.secret=testing
-```
+##### Query Service
 
-Then you'll start the Gatling load test up (it's already integrated into the project):
+First, run `./scripts/deploy.sh` to compile java & scala files into `target/`.
+Second, run `./scripts/indexing.sh` to index data.
+Last, run `./scripts/launch.sh` to start service.
 
-```
-sbt gatling:test
-```
+##### Suggestion Service
 
-For best results, start the gatling load test up on another machine so you do not have contending resources.  You can edit the [Gatling simulation](http://gatling.io/docs/2.2.2/general/simulation_structure.html#simulation-structure), and change the numbers as appropriate.
+Run `./scripts/wv-build.sh` to build word vector.
+Then, run `./scripts/wv-serve.sh` to start service.
 
-Once the test completes, you'll see an HTML file containing the load test chart:
+#### AMe
 
-```
- ./rest-api/target/gatling/gatlingspec-1472579540405/index.html
-```
-
-That will contain your load test results.
+Run `npm run dev` can start frontend directly.
+Alternatively way is to run `npm run build` to generate static files in `dist/` which is recommended in production environment.
